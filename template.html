@@ -1,0 +1,29 @@
+<template name="afSlingshot">
+  <div class="form-group file-upload afSlingshot">
+
+
+  {{#each files}}
+    <div class="row">
+      <div class="col-sm-3">
+      </div>
+      <div class="col-sm-6">
+        {{uuid}}
+      </div>
+      <div class="col-sm-3">
+        <div class="btn btn-danger">Remove</div>
+      </div>
+     
+      <div class="col-xs-12">
+        <div class="progress">
+          <div class="progress-bar progress-bar-info progress-bar-striped" role="progressbar" aria-valuenow="{{progress}}" aria-valuemin="0" aria-valuemax="100" style="width: {{progress}}%">
+            <span class="sr-only">{{progress}}% Complete</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    {{/each}}
+
+    <label for="file-{{name}}" class="btn btn-default">Upload</label>
+    <input id="file-{{name}}" file-input="{{name}}" type="file" accept="{{accept}}" style="display: none;" multiple="{{multiple}}"/>
+  </div>
+</template>
