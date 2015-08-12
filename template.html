@@ -1,29 +1,49 @@
 <template name="afSlingshot">
-  <div class="form-group file-upload afSlingshot">
+  <div class="form-group file-upload afSlingshot" {{atts}}>
+
+    {{#if showList}}
+      <div class="well file-list">
+        <div class="row">
+          {{#each files}}
+            <div class="col-sm-6 col-md-4 col-xs-12 col-lg-3">
+              <div class="well file">
+                <h4>{{name}}</h4>
+                {{#if isImage}}
+                  <img src="{{src}}" class="image-preview"/>
+                {{else}}
+                  <i class="{{mimeClass}}"></i>
+                {{/if}}
 
 
-  {{#each files}}
-    <div class="row">
-      <div class="col-sm-3">
-      </div>
-      <div class="col-sm-6">
-        {{uuid}}
-      </div>
-      <div class="col-sm-3">
-        <div class="btn btn-danger">Remove</div>
-      </div>
-     
-      <div class="col-xs-12">
-        <div class="progress">
-          <div class="progress-bar progress-bar-info progress-bar-striped" role="progressbar" aria-valuenow="{{progress}}" aria-valuemin="0" aria-valuemax="100" style="width: {{progress}}%">
-            <span class="sr-only">{{progress}}% Complete</span>
-          </div>
+                <div class="progress">
+                  <div class="progress-bar progress-bar-info progress-bar-striped" role="progressbar" aria-valuenow="{{progress}}" aria-valuemin="0" aria-valuemax="100" style="width: {{progress}}%">
+                    <span class="sr-only">{{progress}}% Complete</span>
+                  </div>
+                </div>
+                <div name="remove" class="btn btn-danger">Remove</div>
+              </div>
+            </div>
+          {{/each}}
         </div>
       </div>
-    </div>
-    {{/each}}
+    {{/if}}
 
-    <label for="file-{{name}}" class="btn btn-default">Upload</label>
-    <input id="file-{{name}}" file-input="{{name}}" type="file" accept="{{accept}}" style="display: none;" multiple="{{multiple}}"/>
+    <div class="input-group" name="afSlingshot-uploader">
+      <input type="text" class="form-control" readonly value="{{summary}}"/>
+      <span class="input-group-btn">
+        <button class="btn btn-default upload-btn" type="button">Upload</button>
+      </span>
+    </div>
+
+    {{#if showTotalProgress}}
+      <div class="progress">
+        <div class="progress-bar progress-bar-info progress-bar-striped" role="progressbar" aria-valuenow="{{progress}}" aria-valuemin="0" aria-valuemax="100" style="width: {{progress}}%">
+          <span class="sr-only">{{progress}}% Complete</span>
+        </div>
+      </div>
+    {{/if}}
+
+    <!-- Actual file input -->
+    <input type="file" accept="{{accept}}" style="display: none;" multiple="{{multiple}}"/>
   </div>
 </template>

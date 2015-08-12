@@ -1,0 +1,11 @@
+.afSlingshot .file-list .file .image-preview{
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.afSlingshot .file-list .file{
+  background-color: white;
+}
+
+.afSlingshot .upload-btn{
+}

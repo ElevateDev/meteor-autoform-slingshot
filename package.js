@@ -2,7 +2,7 @@ Package.describe({
   name: 'elevatedevdesign:autoform-slingshot',
   summary: 'Slingshot uploader for autoform',
   version: '0.0.1-rc.1',
-  git: 'https://github.com/Elevate/meteor-autoform-slingshot'
+  git: 'https://github.com/ElevateDev/meteor-autoform-slingshot'
 });
 
 Package.onUse(function(api) {
@@ -16,6 +16,7 @@ Package.onUse(function(api) {
 
   api.addFiles([
     'template.html',
-    'template.js'
+    'template.js',
+    'template.css'
   ], 'client');
 });

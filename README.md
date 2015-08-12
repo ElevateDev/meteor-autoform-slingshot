@@ -8,6 +8,7 @@ elevatedevdesign:autoform-slingshot
 type: String,
 autoform: {
   type: "slingshot",
+  hideList: true,
   slingshot: {
     directives: [
       { 
@@ -18,6 +19,16 @@ autoform: {
   }
 }
 
+// NOTICE! These are required for type: [Object].
+'file.key': { type: String },
+'file.filename': { type: String },
+'file.src': { type: String },
+'file.directive': { type: String },
+'file.type': { type: String }
+
+
+## Icons
+Icons are set via CSS.
 
 ## TODO
 Add Single file upload portion
