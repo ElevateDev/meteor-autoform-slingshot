@@ -1,17 +1,25 @@
-afSlingshotImpl = function( config ){
-  this._initConfig( config );
+afSlingshotImpl = function( config, multi ){
+  this._initConfig( config, multi );
   
   this._uploads = new ReactiveVar({});
 };
 
 // This takes settings and makes some inferences, so we don't have to do it later
-afSlingshotImpl.prototype._initConfig = function( config ){
+afSlingshotImpl.prototype._initConfig = function( config, multi ){
   config = _.extend({},config);
-  
-  console.log( config );
-  // Do we clear all files already in when we upload?
-  config.replaceOnChange = true;
-  config.multipleUpload = true;
+
+  // if multi is undefined default it to true;
+  multi = (multi === undefined) ? true : multi;
+
+  if( multi ){
+    _.defaults( config, {
+      replaceOnChange: false
+    });
+  }else{
+    _.defaults( config, {
+      replaceOnChange: true
+    });
+  }
 
   this._config = config;
 };
@@ -49,7 +57,7 @@ afSlingshotImpl.prototype.add = function( files ){
   // Iterate through all directives and all files and upload them
   // Give each file a UUID so we can keep them grouped on the UI
   _.each( files, function( file ){
-    _.each( self._config.slingshot.directives, function( directive ){
+    _.each( self._config.directives, function( directive ){
       if( uploaders[ file.name ] === undefined ){
         uploaders[ file.name ] = [];
       }
@@ -57,23 +65,27 @@ afSlingshotImpl.prototype.add = function( files ){
     });
   });
 
-  this._uploads.set( _.extend( uploaders, this._uploads.get() ) );
+  if( this._config.replaceOnChange ){  
+    this._uploads.set( uploaders );
+  }else{
+    this._uploads.set( _.extend( uploaders, this._uploads.get() ) );
+  }
 };
 
 /*
- * Return progress of specific file upload.
- * If name is undefined, return min progress of all uploads.
+ * Return progress of file upload.
  */
 afSlingshotImpl.prototype.progress = function progress( name ){
   var self = this;
   var min;
   if( !name ){
-    min = _.min( _.map(this._uploads.get(), function(v,k){
+    // If name wasn't defined, recurse and find min of al uploads
+    min = _.min( _.map(self._uploads.get(), function(v,k){
       return self.progress( k );
     }));
     return min;
-  }else if( this._uploads.get()[name] ){
-    min = _.min( _.map(this._uploads.get()[name],function(u){ 
+  }else if( self._uploads.get()[name] ){
+    min = _.min( _.map(self._uploads.get()[name],function(u){ 
       return u.progress(); 
     }));
     return min*100;
@@ -88,7 +100,6 @@ afSlingshotImpl.prototype._getFile = function( name ){
 
 afSlingshotImpl.prototype.isImage = function( name ){
   var file = this._getFile( name );
-  console.log( file );
   if( file ){
     return file.isImage();
   }
@@ -112,6 +123,18 @@ afSlingshotImpl.prototype.remove = function( name ){
   this._uploads.set( _.omit( this._uploads.get(), name ) );
 };
 
+afSlingshotImpl.prototype.download = function( name ){
+  var self = this;
+  if( name ){
+    var file = this._getFile( name );
+    window.open( self._dataFromUploader(file).src );
+  }else{
+    _.each(this.files(),function( f ){
+      self.download( f.name );
+    });
+  }
+};
+
 afSlingshotImpl.prototype.files = function( ){
   var files = _.map( this._uploads.get(), function( uploaders, k ){
     var file = uploaders[0];
@@ -123,20 +146,26 @@ afSlingshotImpl.prototype.files = function( ){
   return files;
 };
 
+afSlingshotImpl.prototype._dataFromUploader = function(u){
+  var f = {
+    src: u.url(),
+    filename: u.file.name,
+    type: u.file.type,
+    size: u.file.size,
+    directive: u.directive,
+  };
+  if( u.instructions ){
+    f.key = _.find( u.instructions.postData, function( d ){ return d.name === "key"; } ).value;
+  }
+  return f;
+};
+
 afSlingshotImpl.prototype.data = function(){
+  var self = this;
   var data = [];
   _.each( this._uploads.get(), function( uploaders, k ){
     _.each( uploaders,function( u ){
-      console.log( u );
-      var f = {
-        src: u.url(),
-        filename: u.file.name,
-        type: u.file.type,
-        size: u.file.size,
-        directive: u.directive,
-        key: _.find( u.instructions.postData, function( d ){ return d.name === "key"; } ).value
-      };
-      data.push( f );
+      data.push( self._dataFromUploader( u ) );
     });
   });
   return data;
@@ -148,14 +177,42 @@ AutoForm.addInputType("slingshot", {
   template: "afSlingshot",
   valueOut: function( ){
     var afSlingshot = hackySlingshotStorage[ this.attr('id') ];
-    console.log( 'valueOut', afSlingshot.data()[0] );
-    return afSlingshot.data()[0];
+    if( this.attr('data-multiple') ){
+      return afSlingshot.data();
+    }else{
+      return afSlingshot.data()[0];
+    }
+  },
+  valueConverters: {
+    "string": function(val){
+      console.log( val );
+      return val.src;
+    }
   }
 });
 
 Template.afSlingshot.onCreated(function(){
-  this.afSlingshot = new afSlingshotImpl( this.data.atts );
+  this.afSlingshot = new afSlingshotImpl( this.data.atts.slingshot, this.data.atts.multi );
   hackySlingshotStorage[ this.data.atts.id ] = this.afSlingshot;
+
+  // Setup UI defaults
+  this._config = this.data.atts.ui ? this.data.atts.ui : {};
+  if( this.data.atts.multi ){
+    _.defaults( this._config,{
+      hideList: false,
+      hideIcons: false,
+      noPreview: false,
+      multipleUpload: true,
+      hideDownload: true
+    });
+    // need to add this so we can tell that we're dealing with multiple files later
+    this.data.atts["data-multiple"] = true;
+  }else{
+    _.defaults( this._config,{
+      hideList: true,
+      multipleUpload: false
+    });
+  }
 });
 
 Template.afSlingshot.onDestroyed(function(){
@@ -164,11 +221,11 @@ Template.afSlingshot.onDestroyed(function(){
 
 Template.afSlingshot.helpers({
   atts: function(){
-    return _.pick( this.atts, 'id', 'data-schema-key');
+    return _.omit( this.atts, 'ui','slingshot','multi' );
   },
-  multiple: function () {
+  config: function(){
     var t = Template.instance();
-    return t.afSlingshot._config.multipleUpload;
+    return t._config;
   },
   accept: function(){
     // TODO add directive accepts
@@ -190,7 +247,7 @@ Template.afSlingshot.helpers({
   },
   showList: function(){
     var t = Template.instance();
-    return t.afSlingshot.files().length > 0 && !t.afSlingshot._config.hideList;
+    return t.afSlingshot.files().length > 0 && !t._config.hideList;
   },
   progress: function(){ // From file scope
     var t = Template.instance();
@@ -210,11 +267,11 @@ Template.afSlingshot.helpers({
   },
   src: function(){ // from file scope
     var t = Template.instance();
-    return t.afSlingshot.src( this.uuid );
+    return t.afSlingshot.src( this.name );
   },
   mimeClass: function(){ // from file scope
     var t = Template.instance();
-    var mime = t.afSlingshot.mime( this.uuid );
+    var mime = t.afSlingshot.mime( this.name );
     return mime.replace('/','-');
   }
 });
@@ -228,6 +285,10 @@ Template.afSlingshot.events({
   },
   'click *[name="afSlingshot-uploader"]': function(e,t){
     t.$('input[type="file"]').click();
+  },
+  'click .download-btn': function(e,t){
+    e.stopPropagation();
+    t.afSlingshot.download( this.name );
   }
 });
 

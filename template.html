@@ -20,7 +20,12 @@
                     <span class="sr-only">{{progress}}% Complete</span>
                   </div>
                 </div>
-                <div name="remove" class="btn btn-danger">Remove</div>
+                <div class="btn-group">
+                  <div name="remove" class="btn btn-danger"><i class="fa fa-trash"></i> Remove</div> 
+                  {{#unless config.hideDownload}}
+                    <div class="btn btn-primary download-btn"><i class="fa fa-download"></i> Download</div>
+                  {{/unless}}
+                </div>
               </div>
             </div>
           {{/each}}
@@ -31,7 +36,7 @@
     <div class="input-group" name="afSlingshot-uploader">
       <input type="text" class="form-control" readonly value="{{summary}}"/>
       <span class="input-group-btn">
-        <button class="btn btn-default upload-btn" type="button">Upload</button>
+        <button class="btn btn-default upload-btn" type="button"><i class="fa fa-upload"></i> Upload</button>
       </span>
     </div>
 
@@ -44,6 +49,6 @@
     {{/if}}
 
     <!-- Actual file input -->
-    <input type="file" accept="{{accept}}" style="display: none;" multiple="{{multiple}}"/>
+    <input type="file" accept="{{accept}}" style="display: none;" multiple="{{config.multipleUpload}}"/>
   </div>
 </template>

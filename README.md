@@ -8,8 +8,17 @@ elevatedevdesign:autoform-slingshot
 type: String,
 autoform: {
   type: "slingshot",
-  hideList: true,
+  multi: true, // defaults to true, meta setting, changes defaults
+  ui: {
+    hideList: true,
+    hideIcons: true,
+    noPreview: true,
+    hideDownload: true,
+    multipleUpload  // only applies to file chooser
+  }
   slingshot: {
+    downloadUrl( data ) // for download btn and preview
+    replaceOnChange
     directives: [
       { 
         name: "Files",
@@ -25,7 +34,6 @@ autoform: {
 'file.src': { type: String },
 'file.directive': { type: String },
 'file.type': { type: String }
-
 
 ## Icons
 Icons are set via CSS.

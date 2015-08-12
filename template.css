@@ -3,6 +3,11 @@
   max-height: 100%;
 }
 
+.afSlingshot .file-list .file h4{
+  overflow: hidden;
+  word-wrap: break-word;
+}
+
 .afSlingshot .file-list .file{
   background-color: white;
 }
