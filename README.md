@@ -3,6 +3,10 @@ elevatedevdesign:autoform-slingshot
 
 `meteor add elevatedevdesign:autoform-slingshot`
 
+## Demo
+
+[Demo](http://autoform-slingshot-demo.meteor.com)
+
 ## Config
 
     type: afSlingshot.fileSchema,
@@ -36,8 +40,6 @@ Type can also be
 
 ## TODO
 * The big one - Show errors
-* Correctly stop uploads that are removed
-* Add Remove button for multi = false type
 * i18n support
 * Support for more than just bootstrap and plain
 * Better icon support for non-images

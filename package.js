@@ -15,8 +15,7 @@ Package.onUse(function(api) {
     'edgee:slingshot@0.6.2',
     'aldeed:template-extension@3.4.3',
     'aldeed:autoform@5.0.0',
-
-    'reactive-var'
+    'reactive-var@1.0.5'
   ],'client');
 
   api.addFiles([
