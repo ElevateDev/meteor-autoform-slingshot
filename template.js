@@ -1,7 +1,104 @@
-afSlingshotImpl = function( config, multi ){
-  this._initConfig( config, multi );
+/*
+ * The internal data structure used throughout afSlingshotImpl for data is 
+ * {
+ *   filename(key): [
+ *    {
+ *      directive: directive,
+ *      src: src,
+ *      filename: filename,
+ *      uploader: uploader, // optional, present if uploaded currently
+ *      type: mimeType
+ *    }
+ *   ]
+ * }
+ */
+afSlingshot = {};
+afSlingshot.FileRecord = function( fileDirectiveObjects, config ){
+  var self = this;
+  if( fileDirectiveObjects === undefined || fileDirectiveObjects.length === 0 ){ throw new Meteor.Error("No file objects added"); }
+
+  _.defaults( self, fileDirectiveObjects[0] );
   
-  this._uploads = new ReactiveVar({});
+  self._data = {};  // ReactiveDict clears functions for some damn reason
+  self._dep = new Deps.Dependency();
+  _.each( fileDirectiveObjects, function( obj ){
+    self._data[ obj.directive ] = obj;
+  });
+
+  self._config = config;
+};
+
+afSlingshot.FileRecord.prototype.setProp = function set( directive, key, val ){
+  this._dep.changed();
+  this._data[ directive ][ key ] = val;
+};
+
+afSlingshot.FileRecord.prototype.getProp = function set( directive, key ){
+  this._dep.depend();
+
+  return this._data[ directive ][ key ];
+};
+
+afSlingshot.FileRecord.prototype.getData = function get( ){
+  this._dep.depend();
+
+  var self = this;
+  var data = _.map( self._data, function(v,k){
+    return self._data[ k ];
+  });
+  return data;
+};
+
+afSlingshot.FileRecord.prototype.progress = function(){
+  this._dep.depend();
+
+  var min = _.min( this.getData(), function( file ){
+    if( file.uploader ){
+      if( file.uploader.progress ){
+        return file.uploader.progress();
+      }else{
+        return 0;
+      }
+    }else{ 
+      return 1;
+    }
+  });
+  if( min.uploader ){
+    if( min.uploader.progress ){
+      return min.uploader.progress() * 100;
+    }else{
+      return 0;
+    }
+  }else{
+    return 100;
+  }
+};
+
+afSlingshot.FileRecord.prototype.download = function(){
+  if( this._config && this._config.downloadUrl ){
+    this._config.downloadUrl(this,function( resp ){
+      window.open( resp.src );
+    });
+  }else{
+    window.open( this.src );
+  }
+};
+
+
+afSlingshotImpl = function( config, data, multi ){
+  this._dep = new Deps.Dependency();
+
+  var self = this;
+  self._uploads = {};
+  self._initConfig( config, multi );
+  if( data ){
+    _.each( _.uniq( _.keys( data ) ),function( filename){
+      var fileDirectives = _.filter( data, function( d ){
+        return d[0].filename === filename;
+      });
+      self._uploads[ filename ] = new afSlingshot.FileRecord(  fileDirectives[0], self._config );  
+    });
+  }
 };
 
 // This takes settings and makes some inferences, so we don't have to do it later
@@ -24,16 +121,8 @@ afSlingshotImpl.prototype._initConfig = function( config, multi ){
   this._config = config;
 };
 
-afSlingshotImpl.prototype._sendUpload = function send( file, uploader ){
-  uploader.send( file, function(err, downloadUrl){
-    if( err ){
-      console.error( err );
-    }
-  });
-};
-
 // Takes a single file and a single directive
-afSlingshotImpl.prototype._upload = function upload( file, directive ){
+afSlingshotImpl.prototype._upload = function upload( file, directive, uploaderCallback ){
   var self = this;
   var uploader = new Slingshot.Upload( directive.name );
 
@@ -41,159 +130,182 @@ afSlingshotImpl.prototype._upload = function upload( file, directive ){
   uploader.directive = directive.name; 
 
   if( directive.onBeforeUpload ){
-    directive.onBeforeUpload( files, function( file ){
-      self._sendUpload( file, uploader );
+    directive.onBeforeUpload( file, function( file ){
+      uploader.send( file, uploaderCallback );
     });
   }else{
-    self._sendUpload( file, uploader );
+    uploader.send( file, uploaderCallback );
   }
   return uploader;
 };
 
-afSlingshotImpl.prototype.add = function( files ){
+afSlingshotImpl.prototype._fileFromUploader = function( u ){
+  var f = {
+    src: u.url(),
+    filename: u.file.name,
+    type: u.file.type,
+    size: u.file.size,
+    isImage: u.isImage()
+  };
+  return f;
+};
+
+// TODO rewrite.  Not a fan of all the side effects
+afSlingshotImpl.prototype.add = function( fsFiles ){
   var self = this;
-  var uploaders = {};  // by filename
 
   // Iterate through all directives and all files and upload them
-  // Give each file a UUID so we can keep them grouped on the UI
-  _.each( files, function( file ){
+  var files = {};
+  _.each( fsFiles, function( fsFile ){
+    var fileDirectives = [];
     _.each( self._config.directives, function( directive ){
-      if( uploaders[ file.name ] === undefined ){
-        uploaders[ file.name ] = [];
-      }
-      uploaders[ file.name ].push( self._upload( file, directive ) );
+      // callback is needed to get the key, and finalized url
+      var filename = fsFile.name;
+      var u = self._upload( fsFile, directive, function( err, downloadUrl ){
+        if( err ){ console.error( err ); }
+
+        var file = self._uploads[ filename ];
+        file.setProp( directive.name, 'src', downloadUrl );
+        file.setProp( directive.name, 'key', _.findWhere( u.instructions.postData, {name: "key"}).value );
+      });
+       
+      var fileObj = self._fileFromUploader(u);
+      fileObj.directive = directive.name;
+      fileObj.uploader = u;
+      fileDirectives.push( fileObj );
     });
+
+    files[ fsFile.name ] = new afSlingshot.FileRecord( fileDirectives, this._config );
   });
 
   if( this._config.replaceOnChange ){  
-    this._uploads.set( uploaders );
+    this._uploads = files;
   }else{
-    this._uploads.set( _.extend( uploaders, this._uploads.get() ) );
+    this._uploads = _.extend( files, this._uploads );
   }
+  this._dep.changed();
 };
 
 /*
  * Return progress of file upload.
  */
 afSlingshotImpl.prototype.progress = function progress( name ){
+  this._dep.depend();
+
   var self = this;
   var min;
   if( !name ){
     // If name wasn't defined, recurse and find min of al uploads
-    min = _.min( _.map(self._uploads.get(), function(v,k){
-      return self.progress( k );
+    min = _.min( _.map(self._uploads, function(v,k){
+      return v.progress( );
     }));
     return min;
-  }else if( self._uploads.get()[name] ){
-    min = _.min( _.map(self._uploads.get()[name],function(u){ 
-      return u.progress(); 
-    }));
-    return min*100;
-  }
-};
-
-afSlingshotImpl.prototype._getFile = function( name ){
-  if( this._uploads.get()[name] && this._uploads.get()[name].length > 0){
-    return this._uploads.get()[name][0];
-  }
-};
-
-afSlingshotImpl.prototype.isImage = function( name ){
-  var file = this._getFile( name );
-  if( file ){
-    return file.isImage();
-  }
-};
-
-afSlingshotImpl.prototype.mime = function( name ){
-  var file = this._getFile( name );
-  if( file ){
-    return file.file.type;
-  }
-};
-
-afSlingshotImpl.prototype.src = function( name ){
-  var file = this._getFile( name );
-  if( file ){
-    return file.url( true );
+  }else if( self._uploads[name] ){
+    return self._uploads[name].progress() * 100;
   }
 };
 
 afSlingshotImpl.prototype.remove = function( name ){
-  this._uploads.set( _.omit( this._uploads.get(), name ) );
+  delete this._uploads[ name ];
+  this._dep.changed();
 };
 
 afSlingshotImpl.prototype.download = function( name ){
+  this._dep.depend();
   var self = this;
   if( name ){
-    var file = this._getFile( name );
-    window.open( self._dataFromUploader(file).src );
+    var file = this._uploads[ name ];
+    file.download();
   }else{
     _.each(this.files(),function( f ){
-      self.download( f.name );
+      f.download( );
     });
   }
+};
+
+afSlingshotImpl.prototype.file = function( filename ){
+  this._dep.depend();
+  return this._uploads[ filename ];
 };
 
 afSlingshotImpl.prototype.files = function( ){
-  var files = _.map( this._uploads.get(), function( uploaders, k ){
-    var file = uploaders[0];
-    file.uuid = k;
-    file.name = k;
-
-    return file;
-  }); 
+  this._dep.depend();
+  var files = _.map( this._uploads, function( v,k ){ 
+    return v; 
+  });
   return files;
 };
 
-afSlingshotImpl.prototype._dataFromUploader = function(u){
-  var f = {
-    src: u.url(),
-    filename: u.file.name,
-    type: u.file.type,
-    size: u.file.size,
-    directive: u.directive,
-  };
-  if( u.instructions ){
-    f.key = _.find( u.instructions.postData, function( d ){ return d.name === "key"; } ).value;
-  }
-  return f;
-};
-
 afSlingshotImpl.prototype.data = function(){
-  var self = this;
+  this._dep.depend();
   var data = [];
-  _.each( this._uploads.get(), function( uploaders, k ){
-    _.each( uploaders,function( u ){
-      data.push( self._dataFromUploader( u ) );
-    });
+  _.each( this._uploads, function(v){ 
+    data = data.concat( v.getData() ); 
   });
   return data;
 };
 
 
+
 var hackySlingshotStorage = {};  // TODO WTF? autoform.  Seriously no way to get an instance variable in valueOut?
+SimpleSchema.messages({uploadInProgress: "Upload in progress"});
 AutoForm.addInputType("slingshot", {
   template: "afSlingshot",
   valueOut: function( ){
-    var afSlingshot = hackySlingshotStorage[ this.attr('id') ];
+    var afSlingshot = hackySlingshotStorage[ this.attr('data-schema-key') ];
+    var validationContext = AutoForm.getValidationContext();
+    
+    var val;
     if( this.attr('data-multiple') ){
-      return afSlingshot.data();
+      val = afSlingshot.data();
     }else{
-      return afSlingshot.data()[0];
+      val =  afSlingshot.data()[0];
+    }
+
+    // validate
+    if( afSlingshot.progress() < 100 ){
+      validationContext.addInvalidKeys([{
+        name: this.attr("data-schema-key"), 
+        type: "uploadInProgress",
+        value: val
+      }]);
+    }else{
+      return val;
     }
   },
   valueConverters: {
     "string": function(val){
-      console.log( val );
       return val.src;
     }
+  },
+  valueIn: function( val ){
+    if( typeof(val) === 'undefined' || val === "" || val === null ){ return; }
+    
+    var data = {};
+    if( typeof( val ) === "string" ){
+      var f = {
+        src: val,
+        filename: val,
+        key: val
+      };
+      data[ f.filename ] = [ f ];
+    }else if( !_.isArray(val) ){
+      data[ val.filename] = [_.extend({},val)];
+    }else{
+      _.each( val, function( file ){
+        if( data[ file.filename ] === undefined ){
+          data[ file.filename ] = [];
+        }
+        data[ file.filename ].push(_.extend({},file));
+      });
+    }
+    return data;
   }
 });
 
 Template.afSlingshot.onCreated(function(){
-  this.afSlingshot = new afSlingshotImpl( this.data.atts.slingshot, this.data.atts.multi );
-  hackySlingshotStorage[ this.data.atts.id ] = this.afSlingshot;
+  this.afSlingshot = new afSlingshotImpl( this.data.atts.slingshot, this.data.value, this.data.atts.multi );
+  hackySlingshotStorage[ this.data.atts['data-schema-key'] ] = this.afSlingshot;  // Seriously... fuck you
 
   // Setup UI defaults
   this._config = this.data.atts.ui ? this.data.atts.ui : {};
@@ -240,7 +352,7 @@ Template.afSlingshot.helpers({
     if( files.length === 0 ){
       return "Click to upload";
     }else if( files.length === 1 ){
-      return files[0].name;
+      return files[0].filename;
     }else{
       return files.length.toString() + " files uploaded";
     }
@@ -249,13 +361,13 @@ Template.afSlingshot.helpers({
     var t = Template.instance();
     return t.afSlingshot.files().length > 0 && !t._config.hideList;
   },
-  progress: function(){ // From file scope
+  progressAll: function(){
     var t = Template.instance();
-    return t.afSlingshot.progress( this.uuid );
+    return t.afSlingshot.progress();
   },
   showTotalProgress: function(){
     var t = Template.instance();
-    var progress = t.afSlingshot.progress( this.uuid );
+    var progress = t.afSlingshot.progress();
     if( progress !== 0 && progress < 100 ){
       return true;
     }
@@ -265,14 +377,11 @@ Template.afSlingshot.helpers({
       return Math.round( val );
     }
   },
-  src: function(){ // from file scope
-    var t = Template.instance();
-    return t.afSlingshot.src( this.name );
-  },
   mimeClass: function(){ // from file scope
     var t = Template.instance();
-    var mime = t.afSlingshot.mime( this.name );
-    return mime.replace('/','-');
+    if( this.type ){
+      return this.type.replace('/','-');
+    }
   }
 });
 
@@ -281,14 +390,18 @@ Template.afSlingshot.events({
     t.afSlingshot.add( e.target.files );
   },
   'click div[name="remove"]': function( e, t ){
-    t.afSlingshot.remove( this.uuid );
+    t.afSlingshot.remove( this.filename );
   },
   'click *[name="afSlingshot-uploader"]': function(e,t){
     t.$('input[type="file"]').click();
   },
   'click .download-btn': function(e,t){
     e.stopPropagation();
-    t.afSlingshot.download( this.name );
+    if( this.download ){
+      this.download();
+    }else{
+      t.afSlingshot.download();
+    }
   }
 });
 

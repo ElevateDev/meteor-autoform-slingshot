@@ -17,7 +17,7 @@ autoform: {
     multipleUpload  // only applies to file chooser
   }
   slingshot: {
-    downloadUrl( data ) // for download btn and preview
+    downloadUrl( data ) // for download btn and preview, should return err, resp { src: 'downloadUrl'}
     replaceOnChange
     directives: [
       { 
@@ -39,7 +39,6 @@ autoform: {
 Icons are set via CSS.
 
 ## TODO
-Add Single file upload portion
 Show errors
-Correctly pass values to autoform
 Add tests
+Invert data structure. Currently uploader -> file info, make it file -> attached uploader

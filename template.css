@@ -12,5 +12,9 @@
   background-color: white;
 }
 
-.afSlingshot .upload-btn{
+.afSlingshot .file-icon{
+  font-size: 100px;
+  margin-left: auto;
+  margin-right: auto;
+  clear: both;
 }

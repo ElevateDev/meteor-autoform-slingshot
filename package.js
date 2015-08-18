@@ -7,10 +7,11 @@ Package.describe({
 
 Package.onUse(function(api) {
   api.use([
-    'templating',
+    'templating@1.1.1',
     'edgee:slingshot@0.6.2',
     'aldeed:template-extension@3.4.3',
-    'aldeed:autoform@5.0.0'
+    'aldeed:autoform@5.0.0',
+    'aldeed:simple-schema@1.3.3'
   ],'client');
 
 
@@ -19,4 +20,19 @@ Package.onUse(function(api) {
     'template.js',
     'template.css'
   ], 'client');
+
+  api.export('afSlingshot');
+});
+
+Package.onTest(function(api) {
+  api.use([
+    'sanjo:jasmine@0.17.0',
+    'velocity:core',
+    'velocity:html-reporter@0.6.2',
+    'velocity:console-reporter',
+    'pstuart2:velocity-notify@0.0.5',
+    'elevatedevdesign:autoform-slingshot'
+  ]);
+
+  api.addFiles(['tests/file-spec.js'], 'client');
 });
