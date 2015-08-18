@@ -1,0 +1,36 @@
+@import "./custom.bootstrap.import.less";
+@import "./custom.bootstrap.less";
+
+body{
+  background-color: @gray-lighter;
+}
+
+.content{
+  background-color: white;
+  padding-bottom: 10px;
+  @media (min-width: @screen-md-min) { 
+    padding-bottom: 90px;
+    padding: 60px;
+    margin-bottom: 40px;
+    .border-bottom-radius(20px);
+  }
+}
+
+/*
+ * Navbar
+ */
+.navbar{
+  margin-bottom: 0px;
+}
+
+/*
+ * Tables
+ */
+table{
+  background-color: white;
+  .table;
+  .table-striped;
+  .table-hover;
+  .table-bordered;
+}
+

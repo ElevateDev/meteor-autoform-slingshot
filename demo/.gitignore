@@ -1,0 +1,8 @@
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+dump
+settings.json
+settings.prod.json
+packages/test-proxy
+packages

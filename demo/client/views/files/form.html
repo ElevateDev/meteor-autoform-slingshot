@@ -1,0 +1,15 @@
+<template name="filesForm">
+  <p class="text-danger">
+    Files are automatically deleted after 1 day.
+  </p>
+  {{#autoForm collection="Files" id="filesForm" type=formType doc=editDoc}}
+    <fieldset>
+      {{> afQuickField name='strFile'}}
+      {{> afQuickField name='file'}}
+      {{> afQuickField name='files'}}
+      <div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </div>
+    </fieldset>
+  {{/autoForm}}
+</template>

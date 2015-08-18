@@ -1,23 +1,33 @@
 Package.describe({
   name: 'elevatedevdesign:autoform-slingshot',
   summary: 'Slingshot uploader for autoform',
-  version: '0.0.1-rc.2',
+  version: '0.0.2',
   git: 'https://github.com/ElevateDev/meteor-autoform-slingshot'
 });
 
 Package.onUse(function(api) {
   api.use([
+    'aldeed:simple-schema@1.3.3',
+  ]);
+
+  api.use([
     'templating@1.1.1',
     'edgee:slingshot@0.6.2',
     'aldeed:template-extension@3.4.3',
     'aldeed:autoform@5.0.0',
-    'aldeed:simple-schema@1.3.3'
+
+    'reactive-var'
   ],'client');
 
   api.addFiles([
+    'fileSchema.js',
+  ]);
+
+  api.addFiles([
+    'fileRecord.js',
     'template.html',
     'template.js',
-    'template.css'
+    'template.css',
   ], 'client');
 
   api.export('afSlingshot');
@@ -33,5 +43,8 @@ Package.onTest(function(api) {
     'elevatedevdesign:autoform-slingshot'
   ]);
 
-  api.addFiles(['tests/file-spec.js'], 'client');
+  api.addFiles([
+    'tests/file-spec.js',
+    'tests/afSlingshot-spec.js'
+  ], 'client');
 });

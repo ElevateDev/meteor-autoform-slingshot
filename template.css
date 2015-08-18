@@ -10,6 +10,11 @@
 
 .afSlingshot .file-list .file{
   background-color: white;
+  text-align: center;
+}
+
+.afSlingshot .file-list .file .file-icon{
+  padding: 10px;
 }
 
 .afSlingshot .file-icon{

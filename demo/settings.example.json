@@ -1,0 +1,10 @@
+{
+  "public" : {
+    "files": {
+      "bucket": "",
+      "region": ""
+    }
+  },
+  "AWSAccessKeyId": "AccessKey",
+  "AWSSecretAccessKey": "SecretKey"
+}

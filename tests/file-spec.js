@@ -7,6 +7,41 @@ describe('File',function() {
     });
     it('should store all values for later query',function() {
     });
+
+    it('should request and save downloadUrl if configured',function() {
+      var expected = 'expectedURL';
+
+      var f = new afSlingshot.FileRecord(
+        [{directive: 'directive', filename: 'filename'}],
+        {
+          downloadUrl: function(obj, callback) {
+            callback({src: expected});
+          }
+        }
+      );
+      expect(f._downloadUrl.get()).toBe(expected);
+    });
+
+    it(
+      'should use the local downloadUrl if uploaded by current user',
+      function() {
+        var expected = 'expectedURL';
+
+        var f = new afSlingshot.FileRecord(
+          [{
+            directive: 'directive',
+            filename: 'filename',
+            uploader: {url: function() { return expected; }}
+          }],
+          {
+            downloadUrl: function(obj, callback) {
+              callback({src: 'unexpected'});
+            }
+          }
+        );
+        expect(f.downloadUrl()).toBe(expected);
+      }
+    );
   });
 
   describe('getData',function() {
@@ -14,7 +49,7 @@ describe('File',function() {
       var f = new afSlingshot.FileRecord([{
         directive: 'directive',
         filename: 'filename',
-      }]);
+      }],{});
       expect(f.getData().length).toBe(1);
       expect(f.getData()[0]).toEqual({
         directive: 'directive',
@@ -30,36 +65,45 @@ describe('File',function() {
       var f = new afSlingshot.FileRecord([{
         directive: 'directive',
         filename: 'filename',
-      }]);
+      }],{});
       expect(f.progress()).toBe(100);
     });
-    it('should return the minimum of all file directives for previously',function() {
-      var f = new afSlingshot.FileRecord([{
-        directive: 'directive',
-        filename: 'filename',
-        uploader: {progress: function() { return 0.5; }}
-      }]);
-      expect(f.progress()).toBe(50);
-    });
+    it(
+      'should return the minimum of all file directives for previously',
+      function() {
+        var f = new afSlingshot.FileRecord([{
+          directive: 'directive',
+          filename: 'filename',
+          uploader: {progress: function() { return 0.5; }}
+        }],{});
+        expect(f.progress()).toBe(50);
+      }
+    );
   });
 
   describe('setProp',function() {
     it('should change property to the new value',function() {
-      var f = new afSlingshot.FileRecord([{directive: 'directive', filename: 'filename'}]);
+      var f = new afSlingshot.FileRecord(
+        [{directive: 'directive', filename: 'filename'}],
+        {}
+      );
       f.setProp('directive', 'src', 'test');
       expect(f.getData()[0].src).toBe('test');
     });
   });
 
   describe('download',function() {
-    it('should call using user setting if defined',function(done) {
+    it('should use downloadUrl if defined',function(done) {
       var expected = 'expectedURL';
 
-      var f = new afSlingshot.FileRecord([{directive: 'directive', filename: 'filename'}], {
-        downloadUrl: function(obj, callback) {
-          callback({src: expected});
+      var f = new afSlingshot.FileRecord(
+        [{directive: 'directive', filename: 'filename'}],
+        {
+          downloadUrl: function(obj, callback) {
+            callback({src: expected});
+          }
         }
-      });
+      );
       spyOn(window, 'open').and.callFake(function(src) {
         expect(src).toBe(expected);
         done();

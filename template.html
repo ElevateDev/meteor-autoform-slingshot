@@ -23,7 +23,7 @@
           <div class="btn-group">
             <div name="remove" class="btn btn-danger"><i class="fa fa-trash"></i> Remove</div> 
             {{#if config.showDownload}}
-            <div class="btn btn-primary download-btn"><i class="fa fa-download"></i> Download</div>
+              <a class="btn btn-primary" download="{{filename}}" href="{{downloadUrl}}"><i class="fa fa-download" target="_blank"></i></a>
             {{/if}}
           </div>
         </div>
@@ -38,7 +38,7 @@
     <span class="input-group-btn">
       <button class="btn btn-default upload-btn" type="button"><i class="fa fa-upload"></i> Upload</button>
       {{#if config.showDownloadAll}}
-      <div class="btn btn-primary download-btn"><i class="fa fa-download"></i></div>
+        <div class="btn btn-primary download-btn"><i class="fa fa-download"></i></div>
       {{/if}}
     </span>
   </div>
