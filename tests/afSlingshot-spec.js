@@ -1,4 +1,4 @@
-describe('afSlingshot',function(){
-  describe('add',function(){
+describe('afSlingshot',function() {
+  describe('add',function() {
   });
 });
