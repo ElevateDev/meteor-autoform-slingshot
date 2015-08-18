@@ -14,7 +14,6 @@ Package.onUse(function(api) {
     'aldeed:simple-schema@1.3.3'
   ],'client');
 
-
   api.addFiles([
     'template.html',
     'template.js',
