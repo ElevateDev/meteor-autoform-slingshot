@@ -44,6 +44,4 @@ Allowed file types is pulled from the first directive defined.
 * The big one - Show errors
 * i18n support
 * Support for more than just bootstrap and plain
-* Better icon support for non-images
-* Detect when a previously saved file is an image (currently only on recent uploads)
 * Add more tests
