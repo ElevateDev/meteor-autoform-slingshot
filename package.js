@@ -1,7 +1,7 @@
 Package.describe({
   name: 'elevatedevdesign:autoform-slingshot',
   summary: 'Slingshot uploader for autoform',
-  version: '0.0.2',
+  version: '0.0.3',
   git: 'https://github.com/ElevateDev/meteor-autoform-slingshot'
 });
 

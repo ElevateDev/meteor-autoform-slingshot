@@ -103,3 +103,7 @@ afSlingshot.FileRecord.prototype.download = function() {
     console.error('Attempted to download file before download url was set.');
   }
 };
+
+afSlingshot.FileRecord.prototype.isImage = function() {
+  return Boolean(this.type && this.type.split("/")[0] === "image");
+};
