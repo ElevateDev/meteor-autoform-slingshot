@@ -33,7 +33,7 @@ deps@1.0.7
 djedi:sanitize-html@1.7.0
 edgee:slingshot@0.7.1
 ejson@1.0.6
-elevatedevdesign:autoform-slingshot@0.0.3
+elevatedevdesign:autoform-slingshot@0.0.4
 email@1.0.6
 fastclick@1.0.3
 fortawesome:fontawesome@4.3.0

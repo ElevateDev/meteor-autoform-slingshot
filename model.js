@@ -108,3 +108,9 @@ afSlingshot.Model.prototype.data = function() {
   });
   return data;
 };
+
+afSlingshot.Model.prototype.allowedFileTypes = function() {
+  var firstDirective = this._config.directives[0];
+  var restriction = Slingshot.getRestrictions( firstDirective.name );
+  return restriction.allowedFileTypes;
+};

@@ -96,8 +96,10 @@ Template.afSlingshot.helpers({
     var t = Template.instance();
     return t._config;
   },
-  accept: function() {
-    // TODO add directive accepts
+  allowedFileTypes: function() {
+    var t = Template.instance();
+    var allowedFileTypes = t.afSlingshot.allowedFileTypes();
+    return allowedFileTypes;
   },
   files: function() {
     var t = Template.instance();

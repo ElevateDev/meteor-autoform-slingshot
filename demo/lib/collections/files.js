@@ -1,5 +1,15 @@
 Schema = {};
 
+Slingshot.fileRestrictions("files", {
+  allowedFileTypes: ["image/png", "image/jpeg", "image/gif"],
+  maxSize: 10 * 1024 * 1024 // 10 MB (use null for unlimited).
+});
+
+Slingshot.fileRestrictions("thumbnails", {
+  allowedFileTypes: ["image/png", "image/jpeg", "image/gif"],
+  maxSize: 1024 * 1024 // 10 MB (use null for unlimited).
+});
+
 if (Meteor.isServer) {
   Slingshot.createDirective('files', Slingshot.S3Storage, {
     bucket: Meteor.settings.public.files.bucket,
@@ -13,9 +23,7 @@ if (Meteor.isServer) {
     key: function(file) {
       var key = Meteor.uuid();
       return key;
-    },
-    allowedFileTypes: null,
-    maxSize: 1024 * 1024 * 10
+    }
   });
   Slingshot.createDirective('thumbnails', Slingshot.S3Storage, {
     bucket: Meteor.settings.public.files.bucket,
@@ -29,9 +37,7 @@ if (Meteor.isServer) {
     key: function(file) {
       var key = Meteor.uuid();
       return key;
-    },
-    allowedFileTypes: null,
-    maxSize: 1024 * 1024
+    }
   });
 }
 

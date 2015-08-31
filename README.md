@@ -37,6 +37,8 @@ Type can also be
 * `String`
 * `[afSlingshot.fileSchema]`
 
+### Allowed File Types
+Allowed file types is pulled from the first directive defined.
 
 ## TODO
 * The big one - Show errors
