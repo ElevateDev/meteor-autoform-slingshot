@@ -15,6 +15,22 @@ if (Meteor.isServer) {
       return key;
     },
     allowedFileTypes: null,
+    maxSize: 1024 * 1024 * 10
+  });
+  Slingshot.createDirective('thumbnails', Slingshot.S3Storage, {
+    bucket: Meteor.settings.public.files.bucket,
+    region: Meteor.settings.public.files.region,
+    acl: 'public-read',
+
+    authorize: function() {
+      return true;
+    },
+
+    key: function(file) {
+      var key = Meteor.uuid();
+      return key;
+    },
+    allowedFileTypes: null,
     maxSize: 1024 * 1024
   });
 }
@@ -62,9 +78,21 @@ Schema.File = new SimpleSchema({
         showDownload: true
       },
       slingshot: {
-        directives: [{
-          name: 'files'
-        }]
+        directives: [
+          {
+            name: "thumbnails",
+            onBeforeUpload: function(file, callback) {
+              var settings = {
+                width: 1024,
+                height: 1024,
+                cropSquare: false
+              };
+              Resizer.resize( file, settings, callback );
+            }
+          },{
+            name: 'files'
+          }
+        ],
       }
     }
   },

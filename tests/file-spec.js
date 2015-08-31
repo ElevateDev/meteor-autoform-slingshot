@@ -3,10 +3,6 @@ describe('File',function() {
     it('should throw an error if empty',function() {
       expect(function() { new afSlingshot.FileRecord(); }).toThrow();
     });
-    it('should default to the first passed file for it\'s values',function() {
-    });
-    it('should store all values for later query',function() {
-    });
 
     it('should request and save downloadUrl if configured',function() {
       var expected = 'expectedURL';
@@ -81,13 +77,13 @@ describe('File',function() {
     );
   });
 
-  describe('setProp',function() {
+  describe('_setProp',function() {
     it('should change property to the new value',function() {
       var f = new afSlingshot.FileRecord(
         [{directive: 'directive', filename: 'filename'}],
         {}
       );
-      f.setProp('directive', 'src', 'test');
+      f._setProp('directive', 'src', 'test');
       expect(f.getData()[0].src).toBe('test');
     });
   });

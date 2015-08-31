@@ -13,17 +13,7 @@ describe('afSlingshot',function() {
         done();
       });
 
-      spyOn(afSlingshot.Model.prototype, '_upload').and.returnValue({
-        url: function() { return 'testUrl'; },
-        file: {
-          name: 'test',
-          type: 'test',
-          size: 3
-        },
-        isImage: function() { return false; }
-      });
-
       model.add([{name: 'testFile'}]);
-    });
+    });  
   });
 });
