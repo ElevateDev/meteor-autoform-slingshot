@@ -22,9 +22,10 @@ elevatedevdesign:autoform-slingshot
       }
       slingshot: {
         downloadUrl( data ) // for download btn and preview, should return err, resp { src: 'downloadUrl'}
-        replaceOnChange
+        replaceOnChange // Make field values the same as what was last entered in file input
+        onRemove( record)
         directives: [
-          { 
+          {
             name: "Files",
             onBeforeUpload: function(){}
           }
@@ -36,6 +37,11 @@ Type can also be
 
 * `String`
 * `[afSlingshot.fileSchema]`
+
+### onRemove
+
+Can be used to remove files from s3.  Be aware though, this does't take into
+account wether or not the record is currently saved with the removed file.
 
 ### Allowed File Types
 Allowed file types is pulled from the first directive defined.

@@ -48,6 +48,9 @@ afSlingshot.Model.prototype.add = function(fsFiles) {
   });
 
   if (this._config.replaceOnChange) {
+    _.each( this._uploads,function( u ){
+      self.remove( u.name );
+    });
     this._uploads = files;
   }else {
     this._uploads = _.extend(files, this._uploads);
@@ -75,6 +78,9 @@ afSlingshot.Model.prototype.progress = function progress(name) {
 };
 
 afSlingshot.Model.prototype.remove = function(name) {
+  if( this._config.onRemove ){
+    this._config.onRemove( this._uploads[ name ] );
+  }
   delete this._uploads[ name ];
   this._dep.changed();
 };
