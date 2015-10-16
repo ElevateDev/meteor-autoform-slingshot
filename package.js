@@ -16,8 +16,8 @@ Package.onUse(function(api) {
     'aldeed:template-extension@3.4.3',
     'aldeed:autoform@5.0.0',
     'reactive-var@1.0.5',
-    'underscore',
-    'tracker'
+    'underscore@1.0.4',
+    'tracker@1.0.9'
   ],'client');
 
   api.addFiles([
