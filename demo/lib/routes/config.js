@@ -5,9 +5,9 @@ Router.configure({
 
 Router.plugin('dataNotFound', {dataNotFoundTemplate: 'notFound'});
 
-Router.route('/', {
-  template: 'filesForm',
-  waitOn: function(){
-    return Meteor.subscribe("files");
-  }
+if( Meteor.isClient ){
+  Meteor.subscribe("files");
+}
+Router.route('/', function(){
+  this.render('filesForm');
 });

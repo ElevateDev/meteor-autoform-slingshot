@@ -1,1 +1,1 @@
-meteor --settings settings.json --port 4020
+meteor --settings settings.dev.json --port 4020

@@ -1,3 +1,6 @@
 .meteor/local
 .meteor/meteorite
 packages
+settings.*.json
+!settings.example.json
+
