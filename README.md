@@ -3,6 +3,10 @@ elevatedevdesign:autoform-slingshot
 
 `meteor add elevatedevdesign:autoform-slingshot`
 
+## Notice
+
+As far as I can tell it works with the most recent versions, I don't plan on much future development on this.
+
 ## Demo
 
 [Demo](http://autoform-slingshot-demo.meteor.com)
